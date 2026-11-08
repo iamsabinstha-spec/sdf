@@ -4,6 +4,47 @@ import { loadAllAppData, saveAllAppData } from './storage';
 
 export type SyncStatus = 'connected' | 'syncing' | 'offline' | 'error';
 
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+  };
+}
+
+export function handleFirestoreError(
+  error: unknown,
+  operationType: OperationType,
+  path: string | null
+): FirestoreErrorInfo {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: null,
+      email: null,
+      emailVerified: false,
+      isAnonymous: true,
+    },
+    operationType,
+    path,
+  };
+  console.warn('Firestore Operation Info: ', JSON.stringify(errInfo));
+  return errInfo;
+}
+
 // Unique ID for this browser tab/device to avoid echo loops
 export const DEVICE_SESSION_ID =
   'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
@@ -37,7 +78,7 @@ export function initRealtimeCloudSync(onRemoteDataReceived: () => void) {
         }
       })
       .catch((err) => {
-        console.warn('Initial cloud read notice:', err);
+        handleFirestoreError(err, OperationType.GET, `${ERP_DOC_PATH}/${ERP_DOC_ID}`);
       });
 
     // Real-time listener for multi-device sync
@@ -74,7 +115,7 @@ export function initRealtimeCloudSync(onRemoteDataReceived: () => void) {
         }
       },
       (error) => {
-        console.error('Real-time cloud sync listener error:', error);
+        handleFirestoreError(error, OperationType.GET, `${ERP_DOC_PATH}/${ERP_DOC_ID}`);
         if (syncStatusListener) {
           syncStatusListener('offline');
         }
@@ -83,7 +124,7 @@ export function initRealtimeCloudSync(onRemoteDataReceived: () => void) {
 
     return unsubscribe;
   } catch (err) {
-    console.error('Failed to start real-time cloud sync:', err);
+    handleFirestoreError(err, OperationType.GET, `${ERP_DOC_PATH}/${ERP_DOC_ID}`);
     if (syncStatusListener) {
       syncStatusListener('offline');
     }
@@ -121,7 +162,7 @@ export async function pushStateToCloud(data: ReturnType<typeof loadAllAppData>) 
       syncStatusListener('connected', new Date().toLocaleTimeString());
     }
   } catch (error) {
-    console.error('Error broadcasting update to cloud:', error);
+    handleFirestoreError(error, OperationType.WRITE, `${ERP_DOC_PATH}/${ERP_DOC_ID}`);
     if (syncStatusListener) {
       syncStatusListener('error');
     }
