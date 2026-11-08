@@ -21,6 +21,12 @@ import {
   saveAllAppData,
   saveStoredData,
 } from './utils/storage';
+import {
+  initRealtimeCloudSync,
+  pushStateToCloud,
+  registerSyncStatusListener,
+  SyncStatus,
+} from './utils/cloudSync';
 import { isLoanOverdue } from './utils/nepaliDate';
 import { Navbar } from './components/Navbar';
 import { Sidebar, ActiveTab } from './components/Sidebar';
@@ -64,13 +70,36 @@ export default function App() {
     isLoggedIn: true,
   });
 
-  // Re-save to local storage whenever data changes
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('connected');
+  const [lastSyncTime, setLastSyncTime] = useState<string>('');
+
+  // Setup Real-time Cloud Sync between Mobile and Computer
+  useEffect(() => {
+    registerSyncStatusListener((status, time) => {
+      setSyncStatus(status);
+      if (time) setLastSyncTime(time);
+    });
+
+    const unsubscribe = initRealtimeCloudSync(() => {
+      // Incoming update from another device (Mobile or Computer)
+      setData(loadAllAppData());
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // Re-save to local storage and broadcast to cloud whenever data changes
   useEffect(() => {
     saveAllAppData(data);
+    pushStateToCloud(data);
   }, [data]);
 
   const refreshFromStorage = () => {
-    setData(loadAllAppData());
+    const fresh = loadAllAppData();
+    setData(fresh);
+    pushStateToCloud(fresh);
   };
 
   // Helper updates
@@ -225,6 +254,8 @@ export default function App() {
           loans={data.loans}
           onOpenLoanAlerts={() => setIsLoanAlertModalOpen(true)}
           onToggleSidebarMobile={() => setIsSidebarMobileOpen(!isSidebarMobileOpen)}
+          syncStatus={syncStatus}
+          lastSyncTime={lastSyncTime}
         />
 
         {/* View Content */}

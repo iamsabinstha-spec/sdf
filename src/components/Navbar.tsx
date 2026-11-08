@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { OrganizationSettings, UserSession, LoanInvestment } from '../types';
 import { toNepaliDigits, isLoanOverdue } from '../utils/nepaliDate';
+import { SyncStatus } from '../utils/cloudSync';
 
 interface Props {
   settings: OrganizationSettings;
@@ -29,6 +30,8 @@ interface Props {
   loans: LoanInvestment[];
   onOpenLoanAlerts: () => void;
   onToggleSidebarMobile: () => void;
+  syncStatus?: SyncStatus;
+  lastSyncTime?: string;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -40,9 +43,12 @@ export const Navbar: React.FC<Props> = ({
   loans,
   onOpenLoanAlerts,
   onToggleSidebarMobile,
+  syncStatus = 'connected',
+  lastSyncTime = '',
 }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [tempDate, setTempDate] = useState(settings.currentSystemDateBS);
 
@@ -167,6 +173,33 @@ export const Navbar: React.FC<Props> = ({
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span className="hidden sm:inline">लाइभ अनलाइन लिङ्क</span>
           <span className="sm:hidden">अनलाइन</span>
+        </button>
+
+        {/* Real-time Cloud Sync between Mobile & Computer Button */}
+        <button
+          onClick={() => setShowSyncModal(true)}
+          className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition shadow-2xs ${
+            syncStatus === 'connected'
+              ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
+              : syncStatus === 'syncing'
+              ? 'border-amber-300 bg-amber-50 text-amber-800 animate-pulse'
+              : 'border-slate-300 bg-slate-50 text-slate-700'
+          }`}
+          title="मोबाइल र कम्प्युटर आपसमा रियल-टाइम जोडिएको स्थिति"
+        >
+          <span
+            className={`h-2 w-2 rounded-full ${
+              syncStatus === 'connected'
+                ? 'bg-blue-600 animate-pulse'
+                : syncStatus === 'syncing'
+                ? 'bg-amber-500'
+                : 'bg-slate-400'
+            }`}
+          ></span>
+          <span className="hidden md:inline">
+            {syncStatus === 'syncing' ? 'सिङ्क हुँदै...' : 'मोबाइल ⇄ PC सिङ्क'}
+          </span>
+          <span className="md:hidden">सिङ्क</span>
         </button>
 
         {/* Loan Maturity & Overdue Alert Notification Bell */}
@@ -295,6 +328,69 @@ export const Navbar: React.FC<Props> = ({
                 className="rounded-xl bg-slate-800 px-5 py-2 text-xs font-bold text-white hover:bg-slate-900"
               >
                 बुझें, बन्द गर्नुहोस्
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cloud Sync Status Modal */}
+      {showSyncModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+          <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl p-6 text-slate-900 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <div className="rounded-xl bg-blue-100 p-2.5 text-blue-700">
+                  <Layers className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                    मोबाइल ⇄ कम्प्युटर रियल-टाइम सिङ्क (Cloud Sync)
+                  </h3>
+                  <p className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>क्लाउड डाटाबेस सक्रिय (Firebase Firestore)</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSyncModal(false)}
+                className="text-slate-400 hover:text-slate-600 rounded-lg p-1"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2 text-xs">
+              <p className="font-bold text-slate-900 text-sm">
+                अब तपाईंले मोबाइलबाट गरेको काम कम्प्युटरमा स्वतः देखिन्छ!
+              </p>
+              <ul className="space-y-1.5 text-slate-600 list-disc list-inside leading-relaxed">
+                <li>
+                  <strong>मिटर रिडर</strong>ले फिल्डमा गएर मोबाइलबाट युनिट इन्ट्री गर्नासाथ कार्यालयको कम्प्युटरमा तत्कालै अपडेट हुन्छ।
+                </li>
+                <li>
+                  <strong>खजाञ्ची वा व्यवस्थापक</strong>ले कम्प्युटरमा रसिद काट्दा वा खर्च लेख्दा मोबाइलमा तुरुन्तै देखिन्छ।
+                </li>
+                <li>
+                  इन्टरनेट भएको जुनसुकै मोबाइल, ल्यापटप वा ट्याब्लेटमा एउटै संस्थाको डाटा १००% सुरक्षित रूपमा एकैसाथ चल्छ।
+                </li>
+              </ul>
+            </div>
+
+            {lastSyncTime && (
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-900 flex justify-between items-center">
+                <span className="font-medium text-slate-600">पछिल्लो सिङ्क समय:</span>
+                <span className="font-bold text-blue-800">{lastSyncTime}</span>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={() => setShowSyncModal(false)}
+                className="rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-md"
+              >
+                बुझें, धन्यवाद
               </button>
             </div>
           </div>

@@ -1,0 +1,129 @@
+{
+  "entities": {
+    "OrganizationSettings": {
+      "title": "OrganizationSettings",
+      "description": "Drinking water user committee settings and tariff configuration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "regNo": { "type": "string" },
+        "panNo": { "type": "string" },
+        "authorizedPerson": { "type": "string" },
+        "currentSystemDateBS": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "currentSystemDateBS"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Customer KYC records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "fullName": { "type": "string" },
+        "fatherName": { "type": "string" },
+        "grandfatherName": { "type": "string" },
+        "dobBS": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "citizenshipNo": { "type": "string" },
+        "landKittaNo": { "type": "string" },
+        "meterNo": { "type": "string" },
+        "registeredDateBS": { "type": "string" },
+        "initialReading": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "fullName", "phone", "registeredDateBS"]
+    },
+    "UnitReading": {
+      "title": "UnitReading",
+      "description": "Monthly water meter readings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "yearMonthBS": { "type": "string" },
+        "readingDateBS": { "type": "string" },
+        "previousReading": { "type": "number" },
+        "currentReading": { "type": "number" },
+        "consumedUnits": { "type": "number" },
+        "billedAmount": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "customerId", "yearMonthBS", "readingDateBS"]
+    },
+    "Receipt": {
+      "title": "Receipt",
+      "description": "Payment receipts for water bills and services",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "receiptNo": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "paymentDateBS": { "type": "string" },
+        "amount": { "type": "number" },
+        "amountInWords": { "type": "string" },
+        "paymentMethod": { "type": "string" }
+      },
+      "required": ["id", "receiptNo", "paymentDateBS", "amount"]
+    },
+    "Loan": {
+      "title": "Loan",
+      "description": "Microfinance and cooperative loan investments",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "loanNo": { "type": "string" },
+        "memberId": { "type": "string" },
+        "memberName": { "type": "string" },
+        "memberPhone": { "type": "string" },
+        "principalAmount": { "type": "number" },
+        "remainingPrincipal": { "type": "number" },
+        "interestRate": { "type": "number" },
+        "disbursedDateBS": { "type": "string" },
+        "dueDateBS": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "loanNo", "memberId", "principalAmount", "dueDateBS"]
+    },
+    "SyncState": {
+      "title": "SyncState",
+      "description": "Full application synced database state for mobile and desktop",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "dataJson": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["id", "dataJson", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/erp_state/{docId}": {
+      "schema": { "$ref": "entities/SyncState" },
+      "description": "Real-time state synchronization document between mobile and PC"
+    },
+    "/customers/{customerId}": {
+      "schema": { "$ref": "entities/Customer" },
+      "description": "Customer records"
+    },
+    "/unit_readings/{readingId}": {
+      "schema": { "$ref": "entities/UnitReading" },
+      "description": "Meter reading records"
+    },
+    "/receipts/{receiptId}": {
+      "schema": { "$ref": "entities/Receipt" },
+      "description": "Receipts records"
+    },
+    "/loans/{loanId}": {
+      "schema": { "$ref": "entities/Loan" },
+      "description": "Loan records"
+    }
+  }
+}
