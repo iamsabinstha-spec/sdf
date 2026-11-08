@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="waterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="50%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="highlightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.2" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#waterGrad)" />
+  <path d="M256 80 C256 80 144 240 144 336 C144 397.85 194.15 448 256 448 C317.85 448 368 397.85 368 336 C368 240 256 80 256 80 Z" fill="#ffffff" />
+  <path d="M256 128 C256 128 176 256 176 336 C176 380.18 211.82 416 256 416 C300.18 416 336 380.18 336 336 C336 256 256 128 256 128 Z" fill="url(#highlightGrad)" />
+  <circle cx="220" cy="270" r="16" fill="#ffffff" opacity="0.7" />
+</svg>
